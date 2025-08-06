@@ -1,5 +1,5 @@
 /// This package provides code generation for ObjectBox in Dart/Flutter.
-library;
+library objectbox_generator;
 
 import 'package:build/build.dart';
 
