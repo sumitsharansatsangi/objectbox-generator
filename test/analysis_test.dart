@@ -27,8 +27,10 @@ void main() {
     print("Store this in generator/lib/${ObjectBoxAnalysis.tokenFilePath}:");
     print("$keyBase64\n$dataBase64");
 
-    final decryptedToken =
-        ObjectBoxAnalysis().decryptAndVerifyToken(keyBase64, dataBase64);
+    final decryptedToken = ObjectBoxAnalysis().decryptAndVerifyToken(
+      keyBase64,
+      dataBase64,
+    );
     expect(decryptedToken, equals(token));
   }, skip: true);
 
@@ -43,12 +45,18 @@ void main() {
     var obfuscatedToken = _obfuscateToken(token);
     final tokenFile = File("lib/${ObjectBoxAnalysis.tokenFilePath}");
     await tokenFile.writeAsString(
-        "${obfuscatedToken.keyBase64}\n${obfuscatedToken.dataBase64}");
+      "${obfuscatedToken.keyBase64}\n${obfuscatedToken.dataBase64}",
+    );
 
-    final testPubspec = Pubspec("test", dependencies: {
-      "flutter": SdkDependency("flutter"),
-      "objectbox": HostedDependency(version: VersionConstraint.parse("^1.2.3"))
-    });
+    final testPubspec = Pubspec(
+      "test",
+      dependencies: {
+        "flutter": SdkDependency("flutter"),
+        "objectbox": HostedDependency(
+          version: VersionConstraint.parse("^1.2.3"),
+        ),
+      },
+    );
 
     final analysis = ObjectBoxAnalysis();
     final event = analysis.buildEvent("Test Event", "test-uid", testPubspec);
@@ -87,8 +95,9 @@ void main() {
     // Read an existing file.
     final existingTestFile = File("test/analysis_test_uid.json");
 
-    final existingProperties =
-        await BuildProperties.get(filePath: existingTestFile.path);
+    final existingProperties = await BuildProperties.get(
+      filePath: existingTestFile.path,
+    );
 
     expect(existingProperties!.uid, "test-uid");
     expect(existingProperties.lastSentMs, 123456789);
@@ -98,7 +107,9 @@ void main() {
     if (await newTestFile.exists()) await newTestFile.delete();
 
     expect(
-        await BuildProperties.create().write(filePath: newTestFile.path), true);
+      await BuildProperties.create().write(filePath: newTestFile.path),
+      true,
+    );
     final newProperties = await BuildProperties.get(filePath: newTestFile.path);
 
     expect(newProperties, isNotNull);
@@ -132,12 +143,21 @@ ObfuscatedToken _obfuscateToken(String token) {
 
   final algorithm = ChaCha20Poly1305(ChaCha7539Engine(), Poly1305());
   var params = AEADParameters(
-      KeyParameter(key), ObfuscatedToken.macLengthBits, nonce, Uint8List(0));
+    KeyParameter(key),
+    ObfuscatedToken.macLengthBits,
+    nonce,
+    Uint8List(0),
+  );
   algorithm.init(true /* encrypt */, params);
 
   final encrypted = Uint8List(algorithm.getOutputSize(message.length));
-  final outLen =
-      algorithm.processBytes(message, 0, message.length, encrypted, 0);
+  final outLen = algorithm.processBytes(
+    message,
+    0,
+    message.length,
+    encrypted,
+    0,
+  );
   algorithm.doFinal(encrypted, outLen);
 
   // Store nonce together with encrypted text (which includes the MAC at the end)

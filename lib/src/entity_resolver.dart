@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:objectbox/internal.dart';
-import 'package:objectbox/objectbox.dart';
+import 'package:objectbox/objectbox.dart' hide Builder;
 import 'package:source_gen/source_gen.dart';
 
 /// EntityResolver finds all classes with an @Entity annotation and generates '.objectbox.info' files in build cache.
@@ -18,19 +18,37 @@ class EntityResolver extends Builder {
   final buildExtensions = {
     '.dart': [suffix],
   };
-
-  final _entityChecker = const TypeChecker.fromRuntime(Entity);
-  final _propertyChecker = const TypeChecker.fromRuntime(Property);
-  final _idChecker = const TypeChecker.fromRuntime(Id);
-  final _transientChecker = const TypeChecker.fromRuntime(Transient);
-  final _syncChecker = const TypeChecker.fromRuntime(Sync);
-  final _uniqueChecker = const TypeChecker.fromRuntime(Unique);
-  final _indexChecker = const TypeChecker.fromRuntime(Index);
-  final _backlinkChecker = const TypeChecker.fromRuntime(Backlink);
-  final _hnswChecker = const TypeChecker.fromRuntime(HnswIndex);
-  final _externalTypeChecker = const TypeChecker.fromRuntime(ExternalType);
-  final _externalNameChecker = const TypeChecker.fromRuntime(ExternalName);
-
+  final _entityChecker = TypeChecker.fromUrl(
+    'package:objectbox/objectbox.dart#Entity',
+  );
+  final _propertyChecker = TypeChecker.fromUrl(
+    'package:objectbox/objectbox.dart#Property',
+  );
+  final _idChecker = TypeChecker.fromUrl('package:objectbox/objectbox.dart#Id');
+  final _transientChecker = TypeChecker.fromUrl(
+    'package:objectbox/objectbox.dart#Transient',
+  );
+  final _syncChecker = TypeChecker.fromUrl(
+    'package:objectbox/objectbox.dart#Sync',
+  );
+  final _uniqueChecker = TypeChecker.fromUrl(
+    'package:objectbox/objectbox.dart#Unique',
+  );
+  final _indexChecker = TypeChecker.fromUrl(
+    'package:objectbox/objectbox.dart#Index',
+  );
+  final _backlinkChecker = TypeChecker.fromUrl(
+    'package:objectbox/objectbox.dart#Backlink',
+  );
+  final _hnswChecker = TypeChecker.fromUrl(
+    'package:objectbox/objectbox.dart#HnswIndex',
+  );
+  final _externalTypeChecker = TypeChecker.fromUrl(
+    'package:objectbox/objectbox.dart#ExternalType',
+  );
+  final _externalNameChecker = TypeChecker.fromUrl(
+    'package:objectbox/objectbox.dart#ExternalName',
+  );
   @override
   FutureOr<void> build(BuildStep buildStep) async {
     final resolver = buildStep.resolver;

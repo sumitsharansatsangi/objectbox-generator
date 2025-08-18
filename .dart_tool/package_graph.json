@@ -30,7 +30,7 @@
     },
     {
       "name": "build_test",
-      "version": "3.3.0",
+      "version": "3.3.2",
       "dependencies": [
         "build",
         "build_config",
@@ -110,7 +110,7 @@
     },
     {
       "name": "http",
-      "version": "1.4.0",
+      "version": "1.5.0",
       "dependencies": [
         "async",
         "http_parser",
@@ -140,7 +140,7 @@
     },
     {
       "name": "source_gen",
-      "version": "3.0.0",
+      "version": "3.1.0",
       "dependencies": [
         "analyzer",
         "async",
@@ -190,7 +190,7 @@
     },
     {
       "name": "build",
-      "version": "3.0.0",
+      "version": "3.0.2",
       "dependencies": [
         "analyzer",
         "async",
@@ -202,6 +202,7 @@
         "glob",
         "graphs",
         "logging",
+        "meta",
         "package_config",
         "path"
       ]
@@ -230,7 +231,6 @@
       "dependencies": [
         "collection",
         "ffi",
-        "flat_buffers",
         "meta",
         "path"
       ]
@@ -308,7 +308,7 @@
     },
     {
       "name": "build_runner_core",
-      "version": "9.2.0",
+      "version": "9.3.0",
       "dependencies": [
         "analyzer",
         "async",
@@ -336,15 +336,13 @@
     },
     {
       "name": "build_resolvers",
-      "version": "3.0.0",
+      "version": "3.0.2",
       "dependencies": [
         "analyzer",
         "async",
         "build",
         "build_runner_core",
         "collection",
-        "convert",
-        "crypto",
         "package_config",
         "path",
         "pool",
@@ -353,13 +351,12 @@
     },
     {
       "name": "build_config",
-      "version": "1.1.2",
+      "version": "1.2.0",
       "dependencies": [
         "checked_yaml",
         "json_annotation",
         "path",
-        "pubspec_parse",
-        "yaml"
+        "pubspec_parse"
       ]
     },
     {
@@ -631,11 +628,6 @@
       "dependencies": []
     },
     {
-      "name": "flat_buffers",
-      "version": "23.5.26",
-      "dependencies": []
-    },
-    {
       "name": "vm_service",
       "version": "15.0.2",
       "dependencies": []
@@ -685,7 +677,7 @@
     },
     {
       "name": "build_runner",
-      "version": "2.6.0",
+      "version": "2.7.0",
       "dependencies": [
         "args",
         "async",

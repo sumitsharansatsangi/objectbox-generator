@@ -6,8 +6,11 @@ import 'package:test/test.dart';
 
 /// it's necessary to read json model because the generated one doesn't contain all the information
 ModelInfo readModelJson(String dir) {
-  return ModelInfo.fromMap(json
-      .decode(File(path.join(dir, 'objectbox-model.json')).readAsStringSync()));
+  return ModelInfo.fromMap(
+    json.decode(
+      File(path.join(dir, 'objectbox-model.json')).readAsStringSync(),
+    ),
+  );
 }
 
 /// Configures test cases to check that the model is specified correctly
@@ -20,13 +23,17 @@ commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
   test('unique UIDs', () {
     // collect UIDs on all entities and properties
     final allUIDs = defs.model.entities
-        .map((entity) => <int>[]
-          ..add(entity.id.uid)
-          ..addAll(entity.properties.map((prop) => prop.id.uid))
-          ..addAll(entity.properties
-              .where((prop) => prop.hasIndexFlag())
-              .map((prop) => prop.indexId!.uid))
-          ..addAll(entity.relations.map((rel) => rel.id.uid)))
+        .map(
+          (entity) => <int>[]
+            ..add(entity.id.uid)
+            ..addAll(entity.properties.map((prop) => prop.id.uid))
+            ..addAll(
+              entity.properties
+                  .where((prop) => prop.hasIndexFlag())
+                  .map((prop) => prop.indexId!.uid),
+            )
+            ..addAll(entity.relations.map((rel) => rel.id.uid)),
+        )
         .reduce((List<int> a, List<int> b) => a + b);
 
     expect(allUIDs.toSet().length, allUIDs.length);
@@ -54,35 +61,45 @@ commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
 
   test('lastPropertyId', () {
     for (final entity in defs.model.entities) {
-      testLastId(entity.lastPropertyId, entity.properties.map((el) => el.id),
-          jsonModel.retiredPropertyUids);
+      testLastId(
+        entity.lastPropertyId,
+        entity.properties.map((el) => el.id),
+        jsonModel.retiredPropertyUids,
+      );
     }
   });
 
   test('lastEntityId', () {
-    testLastId(defs.model.lastEntityId, defs.model.entities.map((el) => el.id),
-        jsonModel.retiredEntityUids);
+    testLastId(
+      defs.model.lastEntityId,
+      defs.model.entities.map((el) => el.id),
+      jsonModel.retiredEntityUids,
+    );
   });
 
   test('lastIndexId', () {
     testLastId(
-        defs.model.lastIndexId,
-        defs.model.entities
-            .map((ModelEntity e) => e.properties
+      defs.model.lastIndexId,
+      defs.model.entities
+          .map(
+            (ModelEntity e) => e.properties
                 .where((p) => p.hasIndexFlag())
                 .map((p) => p.indexId!)
-                .toList())
-            .reduce((List<IdUid> a, List<IdUid> b) => a + b),
-        jsonModel.retiredIndexUids);
+                .toList(),
+          )
+          .reduce((List<IdUid> a, List<IdUid> b) => a + b),
+      jsonModel.retiredIndexUids,
+    );
   });
 
   test('lastRelationId', () {
     testLastId(
-        defs.model.lastRelationId,
-        defs.model.entities
-            .map((ModelEntity e) => e.relations.map((r) => r.id).toList())
-            .reduce((List<IdUid> a, List<IdUid> b) => a + b),
-        jsonModel.retiredRelationUids);
+      defs.model.lastRelationId,
+      defs.model.entities
+          .map((ModelEntity e) => e.relations.map((r) => r.id).toList())
+          .reduce((List<IdUid> a, List<IdUid> b) => a + b),
+      jsonModel.retiredRelationUids,
+    );
   });
 }
 
@@ -92,7 +109,8 @@ ModelEntity entity(ModelInfo model, String name) {
 
 ModelProperty property(ModelInfo model, String path) {
   final components = path.split('.');
-  return entity(model, components[0])
-      .properties
-      .firstWhere((ModelProperty p) => p.name == components[1]);
+  return entity(
+    model,
+    components[0],
+  ).properties.firstWhere((ModelProperty p) => p.name == components[1]);
 }

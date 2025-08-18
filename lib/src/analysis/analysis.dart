@@ -57,7 +57,8 @@ class ObjectBoxAnalysis {
       final response = await sendEvent(event);
       if (_debug && response != null) {
         print(
-            "[ObjectBox] Analysis response: ${response.statusCode} ${response.body}");
+          "[ObjectBox] Analysis response: ${response.statusCode} ${response.body}",
+        );
       }
     } catch (e, s) {
       // E.g. connection can not be established (offline, TLS issue, ...).
@@ -87,9 +88,11 @@ class ObjectBoxAnalysis {
     final body = "[${event.toJson()}]";
     final url = Uri.https(_url, _path);
     if (_debug) print("[ObjectBox] Analysis sending to $url: $body");
-    return http.post(url,
-        headers: {'Accept': 'text/plain', 'Content-Type': 'application/json'},
-        body: body);
+    return http.post(
+      url,
+      headers: {'Accept': 'text/plain', 'Content-Type': 'application/json'},
+      body: body,
+    );
   }
 
   /// Uses the given values to gather properties and return them as an [Event].
@@ -100,9 +103,9 @@ class ObjectBoxAnalysis {
     properties["Tool"] = "Dart Generator";
     properties["Version"] = Version.current;
 
-    final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
-        .firstMatch(Platform.version)
-        ?.group(0);
+    final dartVersion = RegExp(
+      '([0-9]+).([0-9]+).([0-9]+)',
+    ).firstMatch(Platform.version)?.group(0);
     properties["Dart"] = dartVersion ?? "unknown";
     // true or false is enough as Dart version above is tied closely to a
     // specific Flutter release (see https://docs.flutter.dev/development/tools/sdk/releases).
@@ -147,29 +150,46 @@ class ObjectBoxAnalysis {
   /// Takes a Base64 encoded key and concatenation of nonce, encrypted token and
   /// MAC and returns the decrypted token.
   String decryptAndVerifyToken(
-      String keyBase64, String nonceEncryptedTokenAndMacBase64) {
+    String keyBase64,
+    String nonceEncryptedTokenAndMacBase64,
+  ) {
     final key = base64Decode(keyBase64);
     // Create copies of nonce and encrypted text with MAC to operate on
     final nonceEncryptedAndMac = base64Decode(nonceEncryptedTokenAndMacBase64);
-    final nonce = Uint8List.fromList(Uint8List.view(
-      nonceEncryptedAndMac.buffer,
-      nonceEncryptedAndMac.offsetInBytes,
-      ObfuscatedToken.nonceLengthBytes,
-    ));
-    final encryptedAndMac = Uint8List.fromList(Uint8List.view(
+    final nonce = Uint8List.fromList(
+      Uint8List.view(
+        nonceEncryptedAndMac.buffer,
+        nonceEncryptedAndMac.offsetInBytes,
+        ObfuscatedToken.nonceLengthBytes,
+      ),
+    );
+    final encryptedAndMac = Uint8List.fromList(
+      Uint8List.view(
         nonceEncryptedAndMac.buffer,
         nonceEncryptedAndMac.offsetInBytes + ObfuscatedToken.nonceLengthBytes,
-        nonceEncryptedAndMac.length - ObfuscatedToken.nonceLengthBytes));
+        nonceEncryptedAndMac.length - ObfuscatedToken.nonceLengthBytes,
+      ),
+    );
 
     final algorithm = ChaCha20Poly1305(ChaCha7539Engine(), Poly1305());
     var params = AEADParameters(
-        KeyParameter(key), ObfuscatedToken.macLengthBits, nonce, Uint8List(0));
+      KeyParameter(key),
+      ObfuscatedToken.macLengthBits,
+      nonce,
+      Uint8List(0),
+    );
     algorithm.init(false /* decrypt */, params);
 
-    final decrypted =
-        Uint8List(algorithm.getOutputSize(encryptedAndMac.length));
+    final decrypted = Uint8List(
+      algorithm.getOutputSize(encryptedAndMac.length),
+    );
     final outLen = algorithm.processBytes(
-        encryptedAndMac, 0, encryptedAndMac.length, decrypted, 0);
+      encryptedAndMac,
+      0,
+      encryptedAndMac.length,
+      decrypted,
+      0,
+    );
     algorithm.doFinal(decrypted, outLen);
 
     return utf8.decode(decrypted);
@@ -218,8 +238,9 @@ class LanguageAndRegion {
     locale = locale.replaceAll(RegExp(RegExp.escape(".UTF-8")), "");
     // If ISO code (xx-XX or xx_XX format), split into lang and region.
     // Otherwise set to unknown.
-    var splitLocale =
-        locale.contains("_") ? locale.split("_") : locale.split("-");
+    var splitLocale = locale.contains("_")
+        ? locale.split("_")
+        : locale.split("-");
     final lang = splitLocale.isNotEmpty ? splitLocale[0] : "unknown";
     final region = splitLocale.length >= 2 ? splitLocale[1] : "unknown";
     return LanguageAndRegion._(lang, region);
