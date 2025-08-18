@@ -10,7 +10,7 @@ import 'src/entity_resolver.dart';
 final _config = Config.readFromPubspec();
 
 /// Finds all classes annotated with @Entity annotation and creates intermediate files for the generator.
-EntityResolver entityResolverFactory(BuilderOptions options) =>
+Builder entityResolverFactory(BuilderOptions options) =>
     EntityResolver();
 
 /// Writes objectbox_model.dart and objectbox-model.json from the prepared .objectbox.info files found in the repo.
