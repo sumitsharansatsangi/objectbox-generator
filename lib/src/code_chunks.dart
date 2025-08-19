@@ -30,7 +30,7 @@ class CodeChunks {
 
     import 'dart:typed_data';
 
-    import 'package:objectbox/internaas fbl.dart' as $obxInt; // generated code can access "internal" functionality
+    import 'package:objectbox/internal.dart' as $obxInt; // generated code can access "internal" functionality
     import 'package:objectbox/objectbox.dart' as $obx;${pubspec?.obxFlutterImport}
 
     import '${sorted(imports).join("';\n import '")}';
