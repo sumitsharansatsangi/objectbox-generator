@@ -30,8 +30,7 @@ class CodeChunks {
 
     import 'dart:typed_data';
 
-    import 'package:flat_buffers/flat_buffers.dart' as fb;
-    import 'package:objectbox/internal.dart' as $obxInt; // generated code can access "internal" functionality
+    import 'package:objectbox/internaas fbl.dart' as $obxInt; // generated code can access "internal" functionality
     import 'package:objectbox/objectbox.dart' as $obx;${pubspec?.obxFlutterImport}
 
     import '${sorted(imports).join("';\n import '")}';
@@ -384,7 +383,7 @@ class CodeChunks {
       }
     });
 
-    return '''(${entity.name} object, fb.Builder fbb) {
+    return '''(${entity.name} object, obx.Builder fbb) {
       ${offsetsCode.join('\n')}
       fbb.startTable(${entity.lastPropertyId.id + 1});
       ${propsCode.join('\n')}
@@ -431,7 +430,7 @@ class CodeChunks {
 
   /// Builds a code string for reading a field with a FlatBuffers ListReader.
   ///
-  /// E.g. uses `fb.ListReader<int>(fb.Int8Reader(), lazy: false)` as reader
+  /// E.g. uses `obx.ListReader<int>(obx.Int8Reader(), lazy: false)` as reader
   /// code string.
   static String readListCodeString(
     ModelProperty p,
@@ -442,7 +441,7 @@ class CodeChunks {
   }) {
     return readFieldCodeString(
       p,
-      "fb.ListReader<$itemType>(fb.${_propertyFlatBuffersType[obxPropertyType]}Reader(), lazy: false)",
+      "obx.ListReader<$itemType>(obx.${_propertyFlatBuffersType[obxPropertyType]}Reader(), lazy: false)",
       defaultValue: defaultValue,
       castTo: castTo,
     );
@@ -466,7 +465,7 @@ class CodeChunks {
           if (p.fieldType == 'DateTime') {
             final readCodeString = readFieldCodeString(
               p,
-              'fb.${_propertyFlatBuffersType[p.type]}Reader()',
+              'obx.${_propertyFlatBuffersType[p.type]}Reader()',
               defaultValue: '0',
             );
             if (p.fieldIsNullable) {
@@ -496,7 +495,7 @@ class CodeChunks {
                 // uses it, see Int8ListReader and Uint8ListReader.
                 return readFieldCodeString(
                   p,
-                  'fb.${p.fieldType}Reader(lazy: false)',
+                  'obx.${p.fieldType}Reader(lazy: false)',
                   castTo: p.fieldType,
                 );
               } else {
@@ -547,7 +546,7 @@ class CodeChunks {
             case OBXPropertyType.Relation:
               return readFieldCodeString(
                 p,
-                'fb.${_propertyFlatBuffersType[p.type]}Reader()',
+                'obx.${_propertyFlatBuffersType[p.type]}Reader()',
                 defaultValue: '0',
               );
             case OBXPropertyType.String:
@@ -555,19 +554,19 @@ class CodeChunks {
               // `readAll` faster(6.1ms) than when false(8.1ms) on Flutter 3.0.1, Dart 2.17.1
               return readFieldCodeString(
                 p,
-                'fb.StringReader(asciiOptimization: true)',
+                'obx.StringReader(asciiOptimization: true)',
               );
             case OBXPropertyType.StringVector:
               // still makes sense to keep `asciiOptimization: true`
               // `readAll` faster(6.1ms) than when false(8.1ms) on Flutter 3.0.1, Dart 2.17.1
               return readFieldCodeString(
                 p,
-                'fb.ListReader<String>(fb.StringReader(asciiOptimization: true), lazy: false)',
+                'obx.ListReader<String>(obx.StringReader(asciiOptimization: true), lazy: false)',
               );
             default:
               return readFieldCodeString(
                 p,
-                'fb.${_propertyFlatBuffersType[p.type]}Reader()',
+                'obx.${_propertyFlatBuffersType[p.type]}Reader()',
               );
           }
         })
@@ -677,7 +676,7 @@ class CodeChunks {
     );
 
     return '''($obx.Store store, ByteData fbData) {
-      final buffer = fb.BufferContext(fbData);
+      final buffer = obx.BufferContext(fbData);
       final rootOffset = buffer.derefObject(0);
       ${preLines.join('\n')}
       final object = ${entity.name}(${constructorLines.join(', \n')})${cascadeLines.join('\n')};
