@@ -450,7 +450,7 @@ class CodeChunks {
   static String objectFromFB(ModelEntity entity) {
     // collect code for the template at the end of this function
     final constructorLines = <String>[]; // used as constructor arguments
-    final cascadeLines = <String>[]; // used with cascade operator (..sth = val)
+    // final cascadeLines = <String>[]; // used with cascade operator (..sth = val)
     final preLines = <String>[]; // code ran before the object is initialized
     final postLines = <String>[]; // code ran after the object is initialized
 
@@ -642,11 +642,11 @@ class CodeChunks {
       return true;
     });
 
-    // initialize the rest using the cascade operator
+    // initialize the rest using constructor named params instead of cascade
     fieldReaders.forEachIndexed((int index, String code) {
       if (code.isNotEmpty && !entity.properties[index].isRelation) {
-        cascadeLines.add(
-          '..${propertyFieldName(entity.properties[index])} = $code',
+        constructorLines.add(
+          '${propertyFieldName(entity.properties[index])}: $code',
         );
       }
     });
@@ -679,7 +679,7 @@ class CodeChunks {
       final buffer = obx.BufferContext(fbData);
       final rootOffset = buffer.derefObject(0);
       ${preLines.join('\n')}
-      final object = ${entity.name}(${constructorLines.join(', \n')})${cascadeLines.join('\n')};
+     final object = ${entity.name}(${constructorLines.join(',\n')});
       ${postLines.join('\n')}
       return object;
     }''';
