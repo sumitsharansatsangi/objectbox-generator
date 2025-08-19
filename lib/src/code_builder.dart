@@ -7,7 +7,6 @@ import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:glob/glob.dart';
 import 'package:objectbox/internal.dart';
-import 'package:objectbox_generator/src/analysis/analysis.dart';
 import 'package:objectbox_generator/src/builder_dirs.dart';
 import 'package:path/path.dart' as path;
 import 'package:pubspec_parse/pubspec_parse.dart';
@@ -78,8 +77,6 @@ class CodeBuilder extends Builder {
       builderDirs,
       pubspec,
     );
-
-    await ObjectBoxAnalysis().sendBuildEvent(pubspec);
   }
 
   Future<ModelInfo> updateModel(
