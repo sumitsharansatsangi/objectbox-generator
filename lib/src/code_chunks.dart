@@ -446,22 +446,17 @@ class CodeChunks {
       castTo: castTo,
     );
   }
-
 static String objectFromFB(ModelEntity entity) {
-    // collect code for the template at the end of this function
     final constructorLines = <String>[]; // used as constructor arguments
     final cascadeLines = <String>[]; // used with cascade operator (..sth = val)
     final preLines = <String>[]; // code ran before the object is initialized
     final postLines = <String>[]; // code ran after the object is initialized
 
-    // Prepare a "reader" for each field. As a side-effect, create a map from
-    // property to its index in entity.properties.
     final fieldIndexes = <String, int>{};
     final fieldReaders = entity.properties
         .mapIndexed((int index, ModelProperty p) {
           fieldIndexes[propertyFieldName(p)] = index;
 
-          // Special handling for DateTime fields.
           if (p.fieldType == 'DateTime') {
             final readCodeString = readFieldCodeString(
               p,
@@ -491,8 +486,6 @@ static String objectFromFB(ModelEntity entity) {
           switch (p.type) {
             case OBXPropertyType.ByteVector:
               if (['Int8List', 'Uint8List'].contains(p.fieldType)) {
-                // Can cast to Int8List or Uint8List as FlatBuffers internally
-                // uses it, see Int8ListReader and Uint8ListReader.
                 return readFieldCodeString(
                   p,
                   'obx.${p.fieldType}Reader(lazy: false)',
@@ -504,8 +497,6 @@ static String objectFromFB(ModelEntity entity) {
             case OBXPropertyType.CharVector:
               return readListCodeString(p, "int", OBXPropertyType.Char);
             case OBXPropertyType.ShortVector:
-              // FlatBuffers has Uint16ListReader, but it does not use Uint16List
-              // internally. Use implementation of objectbox package.
               if (['Int16List', 'Uint16List'].contains(p.fieldType)) {
                 return readFieldCodeString(p, '$obxInt.${p.fieldType}Reader()');
               } else {
@@ -513,32 +504,24 @@ static String objectFromFB(ModelEntity entity) {
               }
             case OBXPropertyType.IntVector:
               if (['Int32List', 'Uint32List'].contains(p.fieldType)) {
-                // FlatBuffers has Uint32ListReader, but it does not use Uint32List
-                // internally. Use implementation of objectbox package.
                 return readFieldCodeString(p, '$obxInt.${p.fieldType}Reader()');
               } else {
                 return readListCodeString(p, "int", OBXPropertyType.Int);
               }
             case OBXPropertyType.LongVector:
               if (['Int64List', 'Uint64List'].contains(p.fieldType)) {
-                // FlatBuffers has no readers for these.
-                // Use implementation of objectbox package.
                 return readFieldCodeString(p, '$obxInt.${p.fieldType}Reader()');
               } else {
                 return readListCodeString(p, "int", OBXPropertyType.Long);
               }
             case OBXPropertyType.FloatVector:
               if (p.fieldType == 'Float32List') {
-                // FlatBuffers has Float32ListReader, but it does not use Float32List
-                // internally. Use implementation of objectbox package.
                 return readFieldCodeString(p, '$obxInt.Float32ListReader()');
               } else {
                 return readListCodeString(p, "double", OBXPropertyType.Float);
               }
             case OBXPropertyType.DoubleVector:
               if (p.fieldType == 'Float64List') {
-                // FlatBuffers has Float64ListReader, but it does not use Float64List
-                // internally. Use implementation of objectbox package.
                 return readFieldCodeString(p, '$obxInt.Float64ListReader()');
               } else {
                 return readListCodeString(p, "double", OBXPropertyType.Double);
@@ -550,15 +533,11 @@ static String objectFromFB(ModelEntity entity) {
                 defaultValue: '0',
               );
             case OBXPropertyType.String:
-              // still makes sense to keep `asciiOptimization: true`
-              // `readAll` faster(6.1ms) than when false(8.1ms) on Flutter 3.0.1, Dart 2.17.1
               return readFieldCodeString(
                 p,
                 'obx.StringReader(asciiOptimization: true)',
               );
             case OBXPropertyType.StringVector:
-              // still makes sense to keep `asciiOptimization: true`
-              // `readAll` faster(6.1ms) than when false(8.1ms) on Flutter 3.0.1, Dart 2.17.1
               return readFieldCodeString(
                 p,
                 'obx.ListReader<String>(obx.StringReader(asciiOptimization: true), lazy: false)',
@@ -572,9 +551,8 @@ static String objectFromFB(ModelEntity entity) {
         })
         .toList(growable: false);
 
-    // try to initialize as much as possible using the constructor
+    // Collect constructor params
     entity.constructorParams.forEachWhile((String declaration) {
-      // See [EntityResolver.constructorParams()] for the format.
       final declarationParts = declaration.split(' ');
       final paramName = declarationParts[0];
       final paramType = declarationParts[1];
@@ -588,35 +566,24 @@ static String objectFromFB(ModelEntity entity) {
           if (paramDartType.startsWith('ToOne<')) {
             paramValueCode = '$obx.$paramDartType(targetId: $paramValueCode)';
           } else if (paramType == 'optional-named') {
-            log.info(
-              'Skipping constructor parameter $paramName on '
-              "'${entity.name}': the matching field is a relation but the type "
-              "isn't - don't know how to initialize this parameter.",
-            );
+            // skip - can't initialize via constructor if types don't match
             return true;
           }
         }
       } else if (paramDartType.startsWith('ToMany<')) {
         paramValueCode = '$obx.$paramDartType()';
       } else {
-        // If we can't find a positional/required-named param, we can't use the constructor at all.
         if (paramType == 'positional' || paramType == 'required-named') {
           throw InvalidGenerationSourceError(
             "Cannot use the default constructor of '${entity.name}': "
             "don't know how to initialize param $paramName - no such property.",
           );
         } else if (paramType == 'optional') {
-          // OK, close the constructor, the rest will be initialized separately (via cascade).
           return false;
         }
-        return true; // continue to the next param
+        return true;
       }
 
-      // The Dart Formatter consumes a large amount of time if constructor
-      // parameters are complex expressions, so add a variable for each
-      // parameter instead and pass that to the constructor.
-      // As the parameter name is user supplied add a suffix to avoid collision
-      // with other variables of the generated method.
       final paramVar = "${paramName}Param";
       preLines.add("final $paramVar = $paramValueCode;");
 
@@ -635,14 +602,11 @@ static String objectFromFB(ModelEntity entity) {
           );
       }
 
-      // Good, we don't need to set this field anymore.
-      // Don't remove - that would mess up indexes.
       if (index != null) fieldReaders[index] = '';
-
       return true;
     });
 
-    // initialize the rest using the cascade operator (fallback for fields not in constructor)
+    // Leftovers -> cascades (e.g. dateFinished)
     fieldReaders.forEachIndexed((int index, String code) {
       if (code.isNotEmpty && !entity.properties[index].isRelation) {
         cascadeLines.add(
@@ -651,17 +615,20 @@ static String objectFromFB(ModelEntity entity) {
       }
     });
 
-    // add initializers for relations
+    // Relations handled after object creation: set targetId then attach
     entity.properties.forEachIndexed((int index, ModelProperty p) {
       if (!p.isRelation) return;
       if (fieldReaders[index].isNotEmpty) {
+        // set the relation target id (explicit statement, not a cascade)
         postLines.add(
           'object.${propertyFieldName(p)}.targetId = ${fieldReaders[index]};',
         );
       }
+      // attach the relation to the store
       postLines.add('object.${propertyFieldName(p)}.attach(store);');
     });
 
+    // set ToMany rel info and backlinks after attachments
     postLines.addAll(
       entity.relations.map(
         (ModelRelation rel) =>
@@ -679,13 +646,13 @@ static String objectFromFB(ModelEntity entity) {
     final buffer = obx.BufferContext(fbData);
     final rootOffset = buffer.derefObject(0);
     ${preLines.join('\n')}
-    final object = ${entity.name}(${constructorLines.join(', \n')})${cascadeLines.join('\n')};
+    final object = ${entity.name}(
+      ${constructorLines.join(',\n')}
+    )${cascadeLines.join('\n')};
     ${postLines.join('\n')}
     return object;
   }''';
   }
-
-
 
   static String toOneRelations(ModelEntity entity) =>
       // ignore: prefer_interpolation_to_compose_strings
