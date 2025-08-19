@@ -642,6 +642,15 @@ class CodeChunks {
       return true;
     });
 
+    // initialize the rest using constructor named params instead of cascade
+    fieldReaders.forEachIndexed((int index, String code) {
+      if (code.isNotEmpty && !entity.properties[index].isRelation) {
+        constructorLines.add(
+          '${propertyFieldName(entity.properties[index])}: $code',
+        );
+      }
+    });
+
     // initialize the rest using the cascade operator
     fieldReaders.forEachIndexed((int index, String code) {
       if (code.isNotEmpty && !entity.properties[index].isRelation) {
