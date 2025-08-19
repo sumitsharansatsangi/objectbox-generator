@@ -447,10 +447,10 @@ class CodeChunks {
     );
   }
 
-  static String objectFromFB(ModelEntity entity) {
+static String objectFromFB(ModelEntity entity) {
     // collect code for the template at the end of this function
     final constructorLines = <String>[]; // used as constructor arguments
-    // final cascadeLines = <String>[]; // used with cascade operator (..sth = val)
+    final cascadeLines = <String>[]; // used with cascade operator (..sth = val)
     final preLines = <String>[]; // code ran before the object is initialized
     final postLines = <String>[]; // code ran after the object is initialized
 
@@ -599,14 +599,14 @@ class CodeChunks {
       } else if (paramDartType.startsWith('ToMany<')) {
         paramValueCode = '$obx.$paramDartType()';
       } else {
-        // If we can't find a positional param, we can't use the constructor at all.
+        // If we can't find a positional/required-named param, we can't use the constructor at all.
         if (paramType == 'positional' || paramType == 'required-named') {
           throw InvalidGenerationSourceError(
             "Cannot use the default constructor of '${entity.name}': "
             "don't know how to initialize param $paramName - no such property.",
           );
         } else if (paramType == 'optional') {
-          // OK, close the constructor, the rest will be initialized separately.
+          // OK, close the constructor, the rest will be initialized separately (via cascade).
           return false;
         }
         return true; // continue to the next param
@@ -642,11 +642,11 @@ class CodeChunks {
       return true;
     });
 
-    // initialize the rest using constructor named params instead of cascade
+    // initialize the rest using the cascade operator (fallback for fields not in constructor)
     fieldReaders.forEachIndexed((int index, String code) {
       if (code.isNotEmpty && !entity.properties[index].isRelation) {
-        constructorLines.add(
-          '${propertyFieldName(entity.properties[index])}: $code',
+        cascadeLines.add(
+          '..${propertyFieldName(entity.properties[index])} = $code',
         );
       }
     });
@@ -676,14 +676,16 @@ class CodeChunks {
     );
 
     return '''($obx.Store store, ByteData fbData) {
-      final buffer = obx.BufferContext(fbData);
-      final rootOffset = buffer.derefObject(0);
-      ${preLines.join('\n')}
-     final object = ${entity.name}(${constructorLines.join(',\n')});
-      ${postLines.join('\n')}
-      return object;
-    }''';
+    final buffer = obx.BufferContext(fbData);
+    final rootOffset = buffer.derefObject(0);
+    ${preLines.join('\n')}
+    final object = ${entity.name}(${constructorLines.join(', \n')})${cascadeLines.join('\n')};
+    ${postLines.join('\n')}
+    return object;
+  }''';
   }
+
+
 
   static String toOneRelations(ModelEntity entity) =>
       // ignore: prefer_interpolation_to_compose_strings
