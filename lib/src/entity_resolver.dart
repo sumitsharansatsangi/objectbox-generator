@@ -18,37 +18,18 @@ class EntityResolver extends Builder {
   final buildExtensions = {
     '.dart': [suffix],
   };
-  final _entityChecker = TypeChecker.fromUrl(
-    'package:objectbox/objectbox.dart#Entity',
-  );
-  final _propertyChecker = TypeChecker.fromUrl(
-    'package:objectbox/objectbox.dart#Property',
-  );
-  final _idChecker = TypeChecker.fromUrl('package:objectbox/objectbox.dart#Id');
-  final _transientChecker = TypeChecker.fromUrl(
-    'package:objectbox/objectbox.dart#Transient',
-  );
-  final _syncChecker = TypeChecker.fromUrl(
-    'package:objectbox/objectbox.dart#Sync',
-  );
-  final _uniqueChecker = TypeChecker.fromUrl(
-    'package:objectbox/objectbox.dart#Unique',
-  );
-  final _indexChecker = TypeChecker.fromUrl(
-    'package:objectbox/objectbox.dart#Index',
-  );
-  final _backlinkChecker = TypeChecker.fromUrl(
-    'package:objectbox/objectbox.dart#Backlink',
-  );
-  final _hnswChecker = TypeChecker.fromUrl(
-    'package:objectbox/objectbox.dart#HnswIndex',
-  );
-  final _externalTypeChecker = TypeChecker.fromUrl(
-    'package:objectbox/objectbox.dart#ExternalType',
-  );
-  final _externalNameChecker = TypeChecker.fromUrl(
-    'package:objectbox/objectbox.dart#ExternalName',
-  );
+  final _entityChecker = TypeChecker.typeNamed(Entity, inPackage: 'objectbox');
+  final _propertyChecker = TypeChecker.typeNamed(Property, inPackage: 'objectbox');
+  final _idChecker = TypeChecker.typeNamed(Id, inPackage: 'objectbox');
+  final _transientChecker = TypeChecker.typeNamed(Transient, inPackage: 'objectbox');
+  final _syncChecker = TypeChecker.typeNamed(Sync, inPackage: 'objectbox');
+  final _uniqueChecker = TypeChecker.typeNamed(Unique, inPackage: 'objectbox');
+  final _indexChecker = TypeChecker.typeNamed(Index, inPackage: 'objectbox');
+  final _backlinkChecker = TypeChecker.typeNamed(Backlink, inPackage: 'objectbox');
+  final _hnswChecker = TypeChecker.typeNamed(HnswIndex, inPackage: 'objectbox');
+  final _externalTypeChecker = TypeChecker.typeNamed(ExternalType, inPackage: 'objectbox');
+  final _externalNameChecker = TypeChecker.typeNamed(ExternalName, inPackage: 'objectbox');
+
   @override
   FutureOr<void> build(BuildStep buildStep) async {
     final resolver = buildStep.resolver;
