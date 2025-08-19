@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_interpolation_to_compose_strings
+
 import 'package:build/build.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:objectbox/internal.dart';
@@ -160,11 +162,11 @@ class CodeChunks {
       additionalArgs +=
           ", hnswParams: ${property.hnswParams!.toCodeString(obxInt)}";
     }
-    if (property.externalType != null) {
-      additionalArgs += ", externalType: ${property.externalType!}";
-    }
     if (property.externalName != null) {
       additionalArgs += ", externalName: '${property.externalName!}'";
+    }
+    if (property.externalType != null) {
+      additionalArgs += ", externalType: ${property.externalType!}";
     }
     return '''
     $obxInt.ModelProperty(
@@ -179,11 +181,11 @@ class CodeChunks {
 
   static String createModelRelation(ModelRelation relation) {
     var additionalArgs = '';
-    if (relation.externalType != null) {
-      additionalArgs += ", externalType: ${relation.externalType!}";
-    }
     if (relation.externalName != null) {
       additionalArgs += ", externalName: '${relation.externalName!}'";
+    }
+    if (relation.externalType != null) {
+      additionalArgs += ", externalType: ${relation.externalType!}";
     }
     return '''
     $obxInt.ModelRelation(
@@ -571,7 +573,6 @@ class CodeChunks {
           }
         })
         .toList(growable: false);
-
     // try to initialize as much as possible using the constructor
     entity.constructorParams.forEachWhile((String declaration) {
       // See [EntityResolver.constructorParams()] for the format.
@@ -642,15 +643,6 @@ class CodeChunks {
       return true;
     });
 
-    // initialize the rest using constructor named params instead of cascade
-    fieldReaders.forEachIndexed((int index, String code) {
-      if (code.isNotEmpty && !entity.properties[index].isRelation) {
-        constructorLines.add(
-          '${propertyFieldName(entity.properties[index])}: $code',
-        );
-      }
-    });
-
     // initialize the rest using the cascade operator
     fieldReaders.forEachIndexed((int index, String code) {
       if (code.isNotEmpty && !entity.properties[index].isRelation) {
@@ -695,7 +687,6 @@ class CodeChunks {
   }
 
   static String toOneRelations(ModelEntity entity) =>
-      // ignore: prefer_interpolation_to_compose_strings
       '[' +
       entity.properties
           .where((ModelProperty prop) => prop.isRelation)

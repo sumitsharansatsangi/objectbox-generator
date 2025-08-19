@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
@@ -19,16 +19,31 @@ class EntityResolver extends Builder {
     '.dart': [suffix],
   };
   final _entityChecker = TypeChecker.typeNamed(Entity, inPackage: 'objectbox');
-  final _propertyChecker = TypeChecker.typeNamed(Property, inPackage: 'objectbox');
+  final _propertyChecker = TypeChecker.typeNamed(
+    Property,
+    inPackage: 'objectbox',
+  );
   final _idChecker = TypeChecker.typeNamed(Id, inPackage: 'objectbox');
-  final _transientChecker = TypeChecker.typeNamed(Transient, inPackage: 'objectbox');
+  final _transientChecker = TypeChecker.typeNamed(
+    Transient,
+    inPackage: 'objectbox',
+  );
   final _syncChecker = TypeChecker.typeNamed(Sync, inPackage: 'objectbox');
   final _uniqueChecker = TypeChecker.typeNamed(Unique, inPackage: 'objectbox');
   final _indexChecker = TypeChecker.typeNamed(Index, inPackage: 'objectbox');
-  final _backlinkChecker = TypeChecker.typeNamed(Backlink, inPackage: 'objectbox');
+  final _backlinkChecker = TypeChecker.typeNamed(
+    Backlink,
+    inPackage: 'objectbox',
+  );
   final _hnswChecker = TypeChecker.typeNamed(HnswIndex, inPackage: 'objectbox');
-  final _externalTypeChecker = TypeChecker.typeNamed(ExternalType, inPackage: 'objectbox');
-  final _externalNameChecker = TypeChecker.typeNamed(ExternalName, inPackage: 'objectbox');
+  final _externalTypeChecker = TypeChecker.typeNamed(
+    ExternalType,
+    inPackage: 'objectbox',
+  );
+  final _externalNameChecker = TypeChecker.typeNamed(
+    ExternalName,
+    inPackage: 'objectbox',
+  );
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -56,11 +71,27 @@ class EntityResolver extends Builder {
     );
   }
 
+  List<String> extractConstructorParams(ClassElement classElement) {
+    final ctor = classElement.unnamedConstructor;
+    if (ctor == null) return [];
+    return ctor.formalParameters
+        .map((param) {
+          var info = StringBuffer(param.displayName);
+          if (param.isRequiredPositional) info.write(' positional');
+          if (param.isOptionalPositional) info.write(' optional');
+          if (param.isRequiredNamed) info.write(' required-named');
+          if (param.isOptionalNamed) info.write(' optional-named');
+          info.writeAll([' ', param.type]);
+          return info.toString();
+        })
+        .toList(growable: false);
+  }
+
   ModelEntity generateForAnnotatedElement(
-    Element2 classElement,
+    Element classElement,
     ConstantReader annotation,
   ) {
-    if (classElement is! ClassElement2) {
+    if (classElement is! ClassElement) {
       throw InvalidGenerationSourceError(
         "Entity '${classElement.displayName}': annotated element must be a class.",
       );
@@ -73,7 +104,7 @@ class EntityResolver extends Builder {
       IdUid(0, entityUid.isNull ? 0 : entityUid.intValue),
       entityRealClass.isNull
           ? classElement.displayName
-          : entityRealClass.typeValue.element3!.displayName,
+          : entityRealClass.typeValue.element!.displayName,
       null,
       uidRequest: !entityUid.isNull && entityUid.intValue == 0,
     );
@@ -93,8 +124,7 @@ class EntityResolver extends Builder {
 
     log.info(entity);
 
-    entity.constructorParams = constructorParams(findConstructor(classElement));
-
+    entity.constructorParams = extractConstructorParams(classElement);
     // Make sure all stored fields are writable when reading object from DB.
     // Let's filter read-only fields, i.e those that:
     //   * don't have a setter, and
@@ -102,9 +132,8 @@ class EntityResolver extends Builder {
     // Note: `.correspondingSetter == null` is also true for `final` fields.
     final readOnlyFields = <String>{};
     // ClassElement classElement = ClassElement();
-    for (var f in classElement.getters2) {
-      // f.isGetter
-      if (f.correspondingSetter2 == null &&
+    for (var f in classElement.getters) {
+      if (f.correspondingSetter == null &&
           !entity.constructorParams.any(
             (String param) => param.startsWith('${f.displayName} '),
           )) {
@@ -113,12 +142,12 @@ class EntityResolver extends Builder {
     }
 
     // read all suitable annotated properties
-    for (var f in classElement.fields2) {
+    for (var f in classElement.fields) {
       // The field might be implicitly defined by a getter, aka it is synthetic
       // and does not exist in code. So always resolve the actual non-synthetic
       // element that exists in code (here a getter) as only it will have any
       // annotations.
-      final annotated = f.nonSynthetic2;
+      final annotated = f.nonSynthetic;
 
       if (_transientChecker.hasAnnotationOfExact(annotated)) {
         log.info(
@@ -188,10 +217,8 @@ class EntityResolver extends Builder {
           );
           continue;
         }
-        relTargetName = (f.type as ParameterizedType)
-            .typeArguments[0]
-            .element3!
-            .displayName;
+        relTargetName =
+            (f.type as ParameterizedType).typeArguments[0].element!.displayName;
       }
 
       final backlinkAnnotations = _backlinkChecker.annotationsOfExact(
@@ -303,7 +330,7 @@ class EntityResolver extends Builder {
 
         // for code generation
         prop.dartFieldType =
-            f.type.element3!.displayName + (isNullable(f.type) ? '?' : '');
+            f.type.element!.displayName + (isNullable(f.type) ? '?' : '');
         entity.properties.add(prop);
       }
     }
@@ -314,10 +341,10 @@ class EntityResolver extends Builder {
     // for `setId()` won't compile. The only exception is when user uses
     // self-assigned IDs, then a different setter will be generated - one that
     // checks the ID being set is already the same, otherwise it must throw.
-    final idField = classElement.fields2.singleWhere(
-      (FieldElement2 f) => f.displayName == entity.idProperty.name,
+    final idField = classElement.fields.singleWhere(
+      (FieldElement f) => f.displayName == entity.idProperty.name,
     );
-    if (idField.setter2 == null) {
+    if (idField.setter == null) {
       if (!entity.idProperty.hasFlag(OBXPropertyFlags.ID_SELF_ASSIGNABLE)) {
         throw InvalidGenerationSourceError(
           "@Id field '${idField.displayName}' must be writable:"
@@ -348,7 +375,7 @@ class EntityResolver extends Builder {
   /// For fields that do not have a [Property.type] declared in their [Property]
   /// annotation tries to determine the ObjectBox database type based on the
   /// Dart type. May return null if no supported type is detected.
-  int? detectObjectBoxType(FieldElement2 f, String className) {
+  int? detectObjectBoxType(FieldElement f, String className) {
     final dartType = f.type;
 
     if (dartType.isDartCoreInt) {
@@ -384,28 +411,28 @@ class EntityResolver extends Builder {
     } else if ([
       'Int8List',
       'Uint8List',
-    ].contains(dartType.element3!.displayName)) {
+    ].contains(dartType.element!.displayName)) {
       return OBXPropertyType.ByteVector;
     } else if ([
       'Int16List',
       'Uint16List',
-    ].contains(dartType.element3!.displayName)) {
+    ].contains(dartType.element!.displayName)) {
       return OBXPropertyType.ShortVector;
     } else if ([
       'Int32List',
       'Uint32List',
-    ].contains(dartType.element3!.displayName)) {
+    ].contains(dartType.element!.displayName)) {
       return OBXPropertyType.IntVector;
     } else if ([
       'Int64List',
       'Uint64List',
-    ].contains(dartType.element3!.displayName)) {
+    ].contains(dartType.element!.displayName)) {
       return OBXPropertyType.LongVector;
-    } else if (dartType.element3!.displayName == 'Float32List') {
+    } else if (dartType.element!.displayName == 'Float32List') {
       return OBXPropertyType.FloatVector;
-    } else if (dartType.element3!.displayName == 'Float64List') {
+    } else if (dartType.element!.displayName == 'Float64List') {
       return OBXPropertyType.DoubleVector;
-    } else if (dartType.element3!.displayName == 'DateTime') {
+    } else if (dartType.element!.displayName == 'DateTime') {
       log.warning(
         "  DateTime property '${f.displayName}' in entity '$className' is stored and read using millisecond precision. "
         'To silence this warning, add an explicit type using @Property(type: PropertyType.date) or @Property(type: PropertyType.dateNano) annotation.',
@@ -419,7 +446,7 @@ class EntityResolver extends Builder {
     return null;
   }
 
-  void processIdProperty(ModelEntity entity, ClassElement2 classElement) {
+  void processIdProperty(ModelEntity entity, ClassElement classElement) {
     // check properties explicitly annotated with @Id()
     final annotated = entity.properties.where(
       (p) => p.hasFlag(OBXPropertyFlags.ID),
@@ -464,10 +491,10 @@ class EntityResolver extends Builder {
   }
 
   void processAnnotationIndexUnique(
-    FieldElement2 f,
-    Element2 annotatedElement,
+    FieldElement f,
+    Element annotatedElement,
     int? fieldType,
-    Element2 elementBare,
+    Element elementBare,
     ModelProperty prop,
   ) {
     IndexType? indexType;
@@ -562,7 +589,7 @@ class EntityResolver extends Builder {
 
   void ensureSingleUniqueReplace(
     ModelEntity entity,
-    ClassElement2 classElement,
+    ClassElement classElement,
   ) {
     final uniqueReplaceProps = entity.properties.where(
       (p) => p.hasFlag(OBXPropertyFlags.UNIQUE_ON_CONFLICT_REPLACE),
@@ -577,7 +604,7 @@ class EntityResolver extends Builder {
 
   void ifSyncEnsureAllUniqueAreReplace(
     ModelEntity entity,
-    ClassElement2 classElement,
+    ClassElement classElement,
   ) {
     if (!entity.hasFlag(OBXEntityFlags.SYNC_ENABLED)) return;
     final uniqueButNotReplaceProps = entity.properties.where((p) {
@@ -624,39 +651,18 @@ class EntityResolver extends Builder {
     return typeArgs.length == 1 ? typeArgs[0] : null;
   }
 
-  bool isRelationField(FieldElement2 f) =>
+  bool isRelationField(FieldElement f) =>
       isToOneRelationField(f) || isToManyRelationField(f);
 
-  bool isToOneRelationField(FieldElement2 f) =>
-      f.type.element3!.displayName == 'ToOne';
+  bool isToOneRelationField(FieldElement f) =>
+      f.type.element!.displayName == 'ToOne';
 
-  bool isToManyRelationField(FieldElement2 f) =>
-      f.type.element3!.displayName == 'ToMany';
+  bool isToManyRelationField(FieldElement f) =>
+      f.type.element!.displayName == 'ToMany';
 
   bool isNullable(DartType type) =>
       type.nullabilitySuffix == NullabilitySuffix.star ||
       type.nullabilitySuffix == NullabilitySuffix.question;
-
-  // Find an unnamed constructor we can use to initialize
-  ConstructorElement2? findConstructor(ClassElement2 entity) {
-    final index = entity.constructors2.indexWhere((c) => c.displayName.isEmpty);
-    return index >= 0 ? entity.constructors2[index] : null;
-  }
-
-  List<String> constructorParams(ConstructorElement2? constructor) {
-    if (constructor == null) return List.empty();
-    return constructor.formalParameters
-        .map((param) {
-          var info = StringBuffer(param.displayName);
-          if (param.isRequiredPositional) info.write(' positional');
-          if (param.isOptionalPositional) info.write(' optional');
-          if (param.isRequiredNamed) info.write(' required-named');
-          if (param.isOptionalNamed) info.write(' optional-named');
-          info.writeAll([' ', param.type]);
-          return info.toString();
-        })
-        .toList(growable: false);
-  }
 
   void _readHnswIndexParams(DartObject annotation, ModelProperty property) {
     final distanceTypeIndex = _enumValueIndex(
@@ -713,7 +719,7 @@ class EntityResolver extends Builder {
 }
 
 extension _TypeCheckerExtensions on TypeChecker {
-  void runIfMatches(Element2 element, void Function(DartObject) fn) {
+  void runIfMatches(Element element, void Function(DartObject) fn) {
     final annotations = annotationsOfExact(element);
     if (annotations.isNotEmpty) fn(annotations.first);
   }

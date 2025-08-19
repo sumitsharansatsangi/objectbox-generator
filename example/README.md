@@ -1,1 +1,0 @@
-See [objectbox example](https://pub.dev/packages/objectbox/example).

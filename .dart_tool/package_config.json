@@ -3,15 +3,15 @@
   "packages": [
     {
       "name": "_fe_analyzer_shared",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/_fe_analyzer_shared-85.0.0",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/_fe_analyzer_shared-88.0.0",
       "packageUri": "lib/",
-      "languageVersion": "3.5"
+      "languageVersion": "3.7"
     },
     {
       "name": "analyzer",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/analyzer-7.7.1",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/analyzer-8.1.1",
       "packageUri": "lib/",
-      "languageVersion": "3.5"
+      "languageVersion": "3.7"
     },
     {
       "name": "args",
@@ -135,7 +135,7 @@
     },
     {
       "name": "dart_style",
-      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/dart_style-3.1.1",
+      "rootUri": "file:///Users/amitsharan/.pub-cache/hosted/pub.dev/dart_style-3.1.2",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
