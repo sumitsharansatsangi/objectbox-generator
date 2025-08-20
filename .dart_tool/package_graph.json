@@ -125,24 +125,6 @@
       ]
     },
     {
-      "name": "analyzer",
-      "version": "8.1.1",
-      "dependencies": [
-        "_fe_analyzer_shared",
-        "collection",
-        "convert",
-        "crypto",
-        "glob",
-        "meta",
-        "package_config",
-        "path",
-        "pub_semver",
-        "source_span",
-        "watcher",
-        "yaml"
-      ]
-    },
-    {
       "name": "objectbox",
       "version": "4.3.0",
       "dependencies": [
@@ -190,13 +172,6 @@
         "timing",
         "watcher",
         "yaml"
-      ]
-    },
-    {
-      "name": "_fe_analyzer_shared",
-      "version": "88.0.0",
-      "dependencies": [
-        "meta"
       ]
     },
     {
@@ -258,7 +233,7 @@
     },
     {
       "name": "dart_style",
-      "version": "3.1.2",
+      "version": "3.1.1",
       "dependencies": [
         "analyzer",
         "args",
@@ -291,14 +266,6 @@
       "dependencies": [
         "async",
         "stack_trace"
-      ]
-    },
-    {
-      "name": "watcher",
-      "version": "1.1.2",
-      "dependencies": [
-        "async",
-        "path"
       ]
     },
     {
@@ -443,6 +410,14 @@
       "dependencies": []
     },
     {
+      "name": "watcher",
+      "version": "1.1.2",
+      "dependencies": [
+        "async",
+        "path"
+      ]
+    },
+    {
       "name": "source_span",
       "version": "1.10.1",
       "dependencies": [
@@ -556,6 +531,31 @@
       "version": "1.0.2",
       "dependencies": [
         "source_span"
+      ]
+    },
+    {
+      "name": "analyzer",
+      "version": "7.7.1",
+      "dependencies": [
+        "_fe_analyzer_shared",
+        "collection",
+        "convert",
+        "crypto",
+        "glob",
+        "meta",
+        "package_config",
+        "path",
+        "pub_semver",
+        "source_span",
+        "watcher",
+        "yaml"
+      ]
+    },
+    {
+      "name": "_fe_analyzer_shared",
+      "version": "85.0.0",
+      "dependencies": [
+        "meta"
       ]
     },
     {
